@@ -44,6 +44,26 @@ func IsAReg(operand Operand) bool {
 		operand == OpEax || operand == OpRax
 }
 
+func IsRM(operand Operand) bool {
+	return operand == OpRm8 || operand == OpRm16 ||
+		operand == OpEax || operand == OpRax
+}
+
+func IsM(operand Operand) bool {
+	return operand == OpM || operand == OpM32fp || operand == OpM64fp
+}
+
+func IsREG(operand Operand) bool {
+	return operand == OpReg8 || operand == OpReg16 ||
+		operand == OpReg32 || operand == OpReg64 ||
+		operand == OpXmm || operand == OpYmm
+}
+
+func IsIMM(operand Operand) bool {
+	return operand == OpImm8 || operand == OpImm16 ||
+		operand == OpImm32 || operand == OpImm64
+}
+
 func Is8Bit(operand Operand) bool {
 	return operand == OpRm8 || operand == OpReg8
 }

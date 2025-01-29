@@ -83,6 +83,7 @@ type State struct {
 	prefixSegmentOverrideStr string
 
 	disassembledInstruction []string
+	disassembledOperands    []string
 
 	mnemonic Mnemonic
 	prefix   Prefix
@@ -468,4 +469,103 @@ func (state *State) ParseAddressOffset() {
 		state.disassembledInstructionSize += 4
 		state.curAddr += 4
 	}
+}
+
+type DisassembledResult struct {
+	startAddr                   uint64
+	disassembledInstructionSize uint64
+	mnemonic                    Mnemonic
+	disassembledInstructionStr  []string
+	nextOffset                  int64
+}
+
+func reverseBytes(b []byte) []byte {
+	for i, j := 0, len(b)-1; i < j; i, j = i+1, j-1 {
+		b[i], b[j] = b[j], b[i]
+	}
+	return b
+}
+
+// func (state *State) step(startAddr uint64) DisassembledResult {
+func (state *State) step(startAddr uint64) {
+	// init
+	state.curAddr = startAddr
+
+	// parse prefix
+	// parsePrefixInstrucsions()
+	// parsesegmentOverrridePrefix()
+	// parsePrefix
+
+	state.ParseREX()
+	state.ParseOpecode()
+	state.ParseModRM()
+	state.ParseAddressOffset()
+
+	// parse operand
+	var imm []byte
+	for _, operand := range state.operands {
+		decodedTranslatedValue := ""
+
+		if IsAReg(operand) || operand == OpCl || operand == OpDx {
+			decodedTranslatedValue = strconv.Itoa(int(operand)) // TODO: fix
+		} else if operand == OpSti {
+			decodedTranslatedValue = "st(" + state.remOps[0] + ")"
+		} else if IsRM(operand) || IsREG(operand) || IsM(operand) {
+			if HasModrm(state.opEnc) {
+				if IsRM(operand) || IsM(operand) {
+					decodedTranslatedValue = state.modrm.GetAddrMode(operand, state.disp8, state.disp32)
+				} else {
+					decodedTranslatedValue = state.modrm.GetReg(operand)
+				}
+			} else {
+				var regIdx int
+				if state.hasREX && state.rex.rexB {
+					regIdx, _ = strconv.Atoi(state.remOps[0])
+					regIdx += 8
+				} else {
+					regIdx, _ = strconv.Atoi(state.remOps[0])
+				}
+
+				if Is8Bit(operand) {
+					decodedTranslatedValue = REGISTERS8[regIdx]
+				} else if Is16Bit(operand) {
+					decodedTranslatedValue = REGISTERS16[regIdx]
+				} else if Is32Bit(operand) {
+					decodedTranslatedValue = REGISTERS32[regIdx]
+				} else if operand == OpXm128 {
+					decodedTranslatedValue = "xmm" + state.remOps[0]
+				}
+			}
+
+			if (IsRM(operand) || IsM(operand)) && HasModrm(state.opEnc) && state.modrm.hasSib {
+				decodedTranslatedValue = state.sib.GetAddr(operand, state.disp8, state.disp32)
+			}
+			// if hasSegmentOverridePrefix
+
+		} else if IsIMM(operand) {
+			immSize := 0
+			if operand == OpImm64 || operand == OpYmm {
+				immSize = 8
+			} else if operand == OpImm32 || operand == OpXmm {
+				immSize = 4
+			} else if operand == OpImm16 {
+				immSize = 2
+			} else if operand == OpImm8 {
+				immSize = 1
+			}
+			imm = state.objectSource[state.curAddr : state.curAddr+uint64(immSize)]
+			imm = reverseBytes(imm)
+			state.disassembledInstructionSize += uint64(immSize)
+			state.curAddr += uint64(immSize)
+
+			tmpStr := "0x"
+			for i := 0; i < len(imm); i++ {
+				tmpStr += fmt.Sprintf("%x", imm[i])
+			}
+			decodedTranslatedValue = tmpStr
+		}
+
+		state.disassembledOperands = append(state.disassembledOperands, decodedTranslatedValue)
+	}
+
 }
