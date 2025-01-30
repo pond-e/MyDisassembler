@@ -265,7 +265,7 @@ func (state *State) ParseOpecode() {
 		state.remOps = eleOperandLookUp.vecString
 		state.operands = eleOperandLookUp.vecOperand
 	} else {
-		log.Fatal("Unknown combination of prefix, mnemonic and opcodeByte: (" + strconv.Itoa(int(state.prefix)) + ", " + strconv.Itoa(int(state.mnemonic)) + ", )")
+		log.Fatal("Unknown combination of prefix, mnemonic and opcodeByte: (" + PrefixToString(state.prefix) + ", " + MnemonicToString(state.mnemonic) + ", )")
 	}
 }
 
