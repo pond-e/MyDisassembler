@@ -212,6 +212,21 @@ const (
 	PrefixREX         // use 64 bit registers
 )
 
+func PrefixToString(prefix Prefix) string {
+	switch prefix {
+	case PrefixNONE:
+		return "none"
+	case PrefixP66:
+		return "66"
+	case PrefixREXW:
+		return "REX.W"
+	case PrefixREX:
+		return "REX"
+	default:
+		return "UNKNOWN"
+	}
+}
+
 type Mnemonic int
 
 const (
@@ -315,7 +330,7 @@ const (
 	MnCDQE
 	MnCQO
 	MnINT21
-	MNENTER
+	MnENTER
 	MnLEAVE
 	MnNOP
 	MnUD2
@@ -325,5 +340,228 @@ const (
 	MnCLC
 	MnBSWAP
 )
+
+func MnemonicToString(mnemonic Mnemonic) string {
+	switch mnemonic {
+	case MnSETNE:
+		return "setne"
+	case MnFXCH:
+		return "fxch"
+	case MnFADD:
+		return "fadd"
+	case MnENDBR64:
+		return "endbr64"
+	case MnENDBR32:
+		return "endbr32"
+	case MnSHLD:
+		return "shld"
+	case MnSHRD:
+		return "shrd"
+	case MnMOV:
+		return "mov"
+	case MnCMOVE:
+		return "move"
+	case MnMOVSX:
+		return "movsx"
+	case MnMOVZX:
+		return "movzx"
+	case MnMOVAPS:
+		return "movaps"
+	case MnSCASQ:
+		return "scasq"
+	case MnLODSQ:
+		return "lodsq"
+	case MnSTOSQ:
+		return "stosq"
+	case MnLEA:
+		return "lea"
+	case MnADD:
+		return "add"
+	case MnADC:
+		return "adc"
+	case MnSUB:
+		return "sub"
+	case MnSBB:
+		return "sbb"
+	case MnMUL:
+		return "mul"
+	case MnIML:
+		return "iml"
+	case MnDIV:
+		return "div"
+	case MnIDIV:
+		return "idiv"
+	case MnINC:
+		return "inc"
+	case MnDEC:
+		return "dec"
+	case MnAND:
+		return "and"
+	case MnOR:
+		return "or"
+	case MnXOR:
+		return "xor"
+	case MnNOT:
+		return "not"
+	case MnNEG:
+		return "neg"
+	case MnCMP:
+		return "cmp"
+	case MnTEST:
+		return "test"
+	case MnSAL:
+		return "sal"
+	case MnSHL:
+		return "shl"
+	case MnSAR:
+		return "sar"
+	case MnSHR:
+		return "shr"
+	case MnRCL:
+		return "rcl"
+	case MnRCR:
+		return "rcr"
+	case MnROL:
+		return "rol"
+	case MnROR:
+		return "ror"
+	case MnJMP:
+		return "jmp"
+	case MnLOOP:
+		return "loop"
+	case MnLOOPE:
+		return "loope"
+	case MnJZ:
+		return "jz"
+	case MnJNZ:
+		return "jnz"
+	case MnJP:
+		return "jp"
+	case MnJO:
+		return "jo"
+	case MnJNO:
+		return "jno"
+	case MnJS:
+		return "js"
+	case MnJECXZ:
+		return "jecxz"
+	case MnJNB:
+		return "jnb"
+	case MnJNBE:
+		return "jnbe"
+	case MnJNG:
+		return "jng"
+	case MnJNGE:
+		return "jnge"
+	case MnJNL:
+		return "jnl"
+	case MnJNLE:
+		return "jnle"
+	case MnJNS:
+		return "jns"
+	case MnJNAE:
+		return "jnae"
+	case MnJNA:
+		return "jna"
+	case MnJPO:
+		return "jpo"
+	case MnCALL:
+		return "call"
+	case MnRET:
+		return "ret"
+	case MnPUSH:
+		return "push"
+	case MnPOP:
+		return "pop"
+	case MnMOVSB:
+		return "movsb"
+	case MnMOVSW:
+		return "movsw"
+	case MnMOVSD:
+		return "movsd"
+	case MnMOVSQ:
+		return "movsq"
+	case MnCLD:
+		return "cld"
+	case MnSTD:
+		return "std"
+	case MnLODSB:
+		return "lodsb"
+	case MnLODSW:
+		return "lodsw"
+	case MnLODSD:
+		return "lodsd"
+	case MnSTOSB:
+		return "stosb"
+	case MnSTOSW:
+		return "stosw"
+	case MnSTOSD:
+		return "stosd"
+	case MnSCASB:
+		return "scasb"
+	case MnSCASW:
+		return "scasw"
+	case MnSCASD:
+		return "scasd"
+	case MnCMPSB:
+		return "cmpsb"
+	case MnCMPSW:
+		return "cmpsw"
+	case MnCMPSD:
+		return "cmpsd"
+	case MnCMPSQ:
+		return "cmpsq"
+	case MnIN:
+		return "in"
+	case MnOUT:
+		return "out"
+	case MnINSB:
+		return "insb"
+	case MnINSW:
+		return "insw"
+	case MnINSD:
+		return "insd"
+	case MnOUTSB:
+		return "outsb"
+	case MnOUTSW:
+		return "outsw"
+	case MnOUTSD:
+		return "outsd"
+	case MnCBW:
+		return "cbw"
+	case MnCWD:
+		return "cwd"
+	case MnCWDE:
+		return "cwde"
+	case MnCDQ:
+		return "cdq"
+	case MnCDQE:
+		return "cdqe"
+	case MnCQO:
+		return "cqo"
+	case MnINT21:
+		return "int21"
+	case MnENTER:
+		return "enter"
+	case MnLEAVE:
+		return "leave"
+	case MnNOP:
+		return "nop"
+	case MnUD2:
+		return "ud2"
+	case MnCPUID:
+		return "cpuid"
+	case MnXCHG:
+		return "xchg"
+	case MnSTC:
+		return "stc"
+	case MnCLC:
+		return "clc"
+	case MnBSWAP:
+		return "bswap"
+	default:
+		return "UNKNOWN"
+	}
+}
 
 var SCALE_FACTOR = [4]int{1, 2, 4, 8}

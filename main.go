@@ -40,4 +40,12 @@ func main() {
 	// get all sections entry points
 
 	// disassemble all sections
+	end := entry + 4
+	// get end address
+	for entry <= end {
+		state := NewState(memory.dump, entry)
+		state.step(entry)
+		fmt.Printf("%s %s\n", state.disassembledInstruction, state.disassembledOperands)
+		entry += state.disassembledInstructionSize
+	}
 }

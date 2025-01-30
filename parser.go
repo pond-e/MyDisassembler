@@ -99,6 +99,13 @@ type State struct {
 	disp32 string
 }
 
+func NewState(objectSource []byte, curAddr uint64) *State {
+	return &State{
+		objectSource: objectSource,
+		curAddr:      curAddr,
+	}
+}
+
 func (state *State) ParsePrefixInstrucsions() {
 	// Prefix group 1
 	if state.objectSource[state.curAddr] == 0xF0 ||
@@ -179,11 +186,11 @@ func (state *State) ParseSIB() {
 }
 
 func (state *State) ParseOpecode() {
-	opcodeByte := state.objectSource[state.curAddr]
+	state.opcodeByte = state.objectSource[state.curAddr]
 	state.disassembledInstructionSize++
 	state.curAddr++
 
-	pottentialOpCodeByte := (opcodeByte << 8) + state.objectSource[state.curAddr]
+	pottentialOpCodeByte := (state.opcodeByte << 8) + state.objectSource[state.curAddr]
 
 	_, okOPLookUpTwoBytes := OP_LOOKUP[PrefixOpcode{Prefix: state.prefix, Opcode: int(state.opcodeByte)}] // TODO: 修正
 	// _, okOpLookUpRexw := OP_LOOKUP[PrefixOpcode{Prefix: PrefixREXW, Opcode: int(state.opcodeByte)}]
@@ -251,7 +258,7 @@ func (state *State) ParseOpecode() {
 		}
 	}
 
-	state.disassembledInstruction = append(state.disassembledInstruction, strconv.Itoa(int(state.mnemonic))) // TODO: append mnemonic string
+	state.disassembledInstruction = append(state.disassembledInstruction, MnemonicToString(state.mnemonic)) // TODO: append mnemonic string
 
 	eleOperandLookUp, okOperandLookUp := OPERAND_LOOKUP[PrefixMnemonicInt{prefix: state.prefix, mnemonic: state.mnemonic, num: int(state.opcodeByte)}]
 	if okOperandLookUp {
@@ -259,7 +266,6 @@ func (state *State) ParseOpecode() {
 		state.remOps = eleOperandLookUp.vecString
 		state.operands = eleOperandLookUp.vecOperand
 	} else {
-		fmt.Printf("%x\n", state.opcodeByte)
 		log.Fatal("Unknown combination of prefix, mnemonic and opcodeByte: (" + strconv.Itoa(int(state.prefix)) + ", " + strconv.Itoa(int(state.mnemonic)) + ", )")
 	}
 }

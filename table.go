@@ -405,6 +405,15 @@ var OPERAND_LOOKUP = map[PrefixMnemonicInt]OpEncVecStrVecOprand{
 	// SETNE
 	{prefix: PrefixNONE, mnemonic: MnSETNE, num: 0x0F95}: {openc: OpEncM, vecString: []string{}, vecOperand: []Operand{OpRm8}},
 
+	// MOV
+	{prefix: PrefixP66, mnemonic: MnMOV, num: 0x8B}:  {openc: OpEncRM, vecString: []string{"/r"}, vecOperand: []Operand{OpReg16, OpRm16}},
+	{prefix: PrefixNONE, mnemonic: MnMOV, num: 0x8B}: {openc: OpEncRM, vecString: []string{"/r"}, vecOperand: []Operand{OpReg32, OpRm32}},
+	{prefix: PrefixREXW, mnemonic: MnMOV, num: 0x8B}: {openc: OpEncRM, vecString: []string{"/r"}, vecOperand: []Operand{OpReg64, OpRm64}},
+
+	{prefix: PrefixP66, mnemonic: MnMOV, num: 0xB8}:  {openc: OpEncOI, vecString: []string{"0"}, vecOperand: []Operand{OpReg16, OpImm16}},
+	{prefix: PrefixNONE, mnemonic: MnMOV, num: 0xB8}: {openc: OpEncOI, vecString: []string{"0"}, vecOperand: []Operand{OpReg32, OpImm32}},
+	{prefix: PrefixREXW, mnemonic: MnMOV, num: 0xB8}: {openc: OpEncOI, vecString: []string{"0"}, vecOperand: []Operand{OpReg64, OpImm64}},
+
 	// ..etc
 }
 
