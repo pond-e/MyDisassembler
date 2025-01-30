@@ -216,7 +216,7 @@ func (state *State) ParseOpecode() {
 		state.prefix = PrefixNONE
 	} else {
 		fmt.Printf("%x\n", state.opcodeByte)
-		log.Fatal("Unknown combination of the prefix and the opcodeByte: (" + strconv.Itoa(int(state.prefix)) + ")")
+		log.Fatal("Unknown combination of the prefix and the opcodeByte: (" + PrefixToString(state.prefix) + ")")
 	}
 
 	// We sometimes need reg of modrm to determine the opecode
