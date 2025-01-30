@@ -192,6 +192,7 @@ func (state *State) ParseOpecode() {
 
 	pottentialOpCodeByte := (state.opcodeByte << 8) + state.objectSource[state.curAddr]
 
+	_, okOpLookUp := OP_LOOKUP[PrefixOpcode{Prefix: state.prefix, Opcode: int(state.opcodeByte)}]
 	// _, okOpLookUpRexw := OP_LOOKUP[PrefixOpcode{Prefix: PrefixREXW, Opcode: int(state.opcodeByte)}]
 	_, okOpLookUpRex := OP_LOOKUP[PrefixOpcode{Prefix: PrefixREX, Opcode: int(state.opcodeByte)}]
 	_, okOpLookUpNone := OP_LOOKUP[PrefixOpcode{Prefix: PrefixNONE, Opcode: int(state.opcodeByte)}]
@@ -203,7 +204,7 @@ func (state *State) ParseOpecode() {
 
 	// (prefix, opcode) -> (reg, mnemonic)
 	reg2mnem := make(map[int]Mnemonic)
-	if slices.Contains(TWO_BYTES_OPCODE_PREFIX[:], int(state.opcodeByte)) {
+	if okOpLookUp {
 		reg2mnemTmp := OP_LOOKUP[PrefixOpcode{Prefix: state.prefix, Opcode: int(state.opcodeByte)}]
 		reg2mnem[reg2mnemTmp.Reg] = reg2mnemTmp.Operator
 	} else if state.prefix == PrefixREXW && okOpLookUpRex {
