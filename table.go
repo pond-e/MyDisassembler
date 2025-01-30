@@ -407,3 +407,13 @@ var OPERAND_LOOKUP = map[PrefixMnemonicInt]OpEncVecStrVecOprand{
 
 	// ..etc
 }
+
+var SEGMENT_OVERRIDE = map[byte]string{
+	// prefix group 2 segment override
+	0x2E: "CS",
+	0x36: "SS",
+	0x3E: "DS",
+	0x26: "ES",
+	0x64: "FS",
+	0x65: "GS",
+}

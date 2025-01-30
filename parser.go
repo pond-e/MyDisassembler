@@ -99,6 +99,45 @@ type State struct {
 	disp32 string
 }
 
+func (state *State) ParsePrefixInstrucsions() {
+	// Prefix group 1
+	if state.objectSource[state.curAddr] == 0xF0 ||
+		state.objectSource[state.curAddr] == 0xF2 ||
+		state.objectSource[state.curAddr] == 0xF3 {
+		state.hasInstructionPrefix = true
+		state.instructionPrefixByte = state.objectSource[state.curAddr]
+		state.prefixOffset = 1
+		state.disassembledInstructionSize++
+		state.curAddr++
+	}
+}
+
+func (state *State) ParseSegmentOverrridePrefix() {
+	// Prefix group 2 segment override
+	if segment, ok := SEGMENT_OVERRIDE[state.objectSource[state.curAddr]]; ok {
+		state.hasSegmentOverridePrefix = true
+		state.prefixSegmentOverrideStr = segment
+		state.disassembledInstructionSize++
+		state.curAddr++
+	}
+}
+
+func (state *State) ParseBranch() {
+	if state.objectSource[state.curAddr] == 0x66 {
+		// TODO: add something
+		state.disassembledInstructionSize++
+		state.curAddr++
+	}
+}
+
+func (state *State) ParseOperandSizeOverridePrefix() {
+	if state.objectSource[state.curAddr] == 0x66 {
+		state.prefix = PrefixP66
+		state.disassembledInstructionSize++
+		state.curAddr++
+	}
+}
+
 func (state *State) ParseREX() {
 	if (state.objectSource[state.curAddr] >> 4) == 4 { // 上位4ビットが0100
 		state.hasREX = true
@@ -269,9 +308,10 @@ func (state *State) step(startAddr uint64) {
 	// init
 	state.curAddr = startAddr
 
+	// TODO: check EndBr
 	// parse prefix
-	// parsePrefixInstrucsions()
-	// parsesegmentOverrridePrefix()
+	state.ParsePrefixInstrucsions()
+	state.ParseSegmentOverrridePrefix()
 	// parsePrefix
 
 	state.ParseREX()
