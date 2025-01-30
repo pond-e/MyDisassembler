@@ -39,6 +39,59 @@ const (
 	OpSti
 )
 
+func OperandToString(operand Operand) string {
+	switch operand {
+	case OpOne:
+		return "one"
+	case OpImm8:
+		return "imm8"
+	case OpImm16:
+		return "imm16"
+	case OpImm32:
+		return "imm32"
+	case OpImm64:
+		return "imm64"
+	case OpReg8:
+		return "reg8"
+	case OpReg16:
+		return "reg16"
+	case OpReg32:
+		return "reg32"
+	case OpReg64:
+		return "reg64"
+	case OpRm8:
+		return "rm8"
+	case OpRm16:
+		return "rm16"
+	case OpRm32:
+		return "rm32"
+	case OpRm64:
+		return "rm64"
+	case OpAl:
+		return "al"
+	case OpAx:
+		return "ax"
+	case OpEax:
+		return "eax"
+	case OpRax:
+		return "rax"
+	case OpMoffs8:
+		return "moffs8"
+	case OpMoffs16:
+		return "moffs16"
+	case OpMoffs32:
+		return "moffs32"
+	case OpMoffs64:
+		return "moffs64"
+	case OpCl:
+		return "cl"
+	case OpDx:
+		return "dx"
+	default:
+		return "unknown"
+	}
+}
+
 func IsAReg(operand Operand) bool {
 	return operand == OpAl || operand == OpAx ||
 		operand == OpEax || operand == OpRax

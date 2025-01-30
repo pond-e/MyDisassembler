@@ -192,11 +192,10 @@ func (state *State) ParseOpecode() {
 
 	pottentialOpCodeByte := (state.opcodeByte << 8) + state.objectSource[state.curAddr]
 
-	_, okOPLookUpTwoBytes := OP_LOOKUP[PrefixOpcode{Prefix: state.prefix, Opcode: int(state.opcodeByte)}] // TODO: 修正
 	// _, okOpLookUpRexw := OP_LOOKUP[PrefixOpcode{Prefix: PrefixREXW, Opcode: int(state.opcodeByte)}]
 	_, okOpLookUpRex := OP_LOOKUP[PrefixOpcode{Prefix: PrefixREX, Opcode: int(state.opcodeByte)}]
 	_, okOpLookUpNone := OP_LOOKUP[PrefixOpcode{Prefix: PrefixNONE, Opcode: int(state.opcodeByte)}]
-	if slices.Contains(TWO_BYTES_OPCODE_PREFIX[:], int(state.opcodeByte)) && okOPLookUpTwoBytes || state.prefix == PrefixREXW && okOpLookUpRex || state.prefix == PrefixREX && okOpLookUpNone {
+	if slices.Contains(TWO_BYTES_OPCODE_PREFIX[:], int(state.opcodeByte)) || state.prefix == PrefixREXW && okOpLookUpRex || state.prefix == PrefixREX && okOpLookUpNone {
 		state.opcodeByte = pottentialOpCodeByte
 		state.disassembledInstructionSize++
 		state.curAddr++
@@ -204,7 +203,7 @@ func (state *State) ParseOpecode() {
 
 	// (prefix, opcode) -> (reg, mnemonic)
 	reg2mnem := make(map[int]Mnemonic)
-	if okOPLookUpTwoBytes {
+	if slices.Contains(TWO_BYTES_OPCODE_PREFIX[:], int(state.opcodeByte)) {
 		reg2mnemTmp := OP_LOOKUP[PrefixOpcode{Prefix: state.prefix, Opcode: int(state.opcodeByte)}]
 		reg2mnem[reg2mnemTmp.Reg] = reg2mnemTmp.Operator
 	} else if state.prefix == PrefixREXW && okOpLookUpRex {
@@ -258,7 +257,7 @@ func (state *State) ParseOpecode() {
 		}
 	}
 
-	state.disassembledInstruction = append(state.disassembledInstruction, MnemonicToString(state.mnemonic)) // TODO: append mnemonic string
+	state.disassembledInstruction = append(state.disassembledInstruction, MnemonicToString(state.mnemonic))
 
 	eleOperandLookUp, okOperandLookUp := OPERAND_LOOKUP[PrefixMnemonicInt{prefix: state.prefix, mnemonic: state.mnemonic, num: int(state.opcodeByte)}]
 	if okOperandLookUp {
@@ -331,7 +330,7 @@ func (state *State) step(startAddr uint64) {
 		decodedTranslatedValue := ""
 
 		if IsAReg(operand) || operand == OpCl || operand == OpDx {
-			decodedTranslatedValue = strconv.Itoa(int(operand)) // TODO: fix
+			decodedTranslatedValue = OperandToString(operand)
 		} else if operand == OpSti {
 			decodedTranslatedValue = "st(" + state.remOps[0] + ")"
 		} else if IsRM(operand) || IsREG(operand) || IsM(operand) {
