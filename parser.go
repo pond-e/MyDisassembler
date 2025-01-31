@@ -103,6 +103,8 @@ func NewState(objectSource []byte, curAddr uint64) *State {
 	return &State{
 		objectSource: objectSource,
 		curAddr:      curAddr,
+
+		prefix: PrefixNONE,
 	}
 }
 
@@ -134,12 +136,25 @@ func (state *State) ParseBranch() {
 		// TODO: add something
 		state.disassembledInstructionSize++
 		state.curAddr++
+		fmt.Printf("mnemonic nun: %x\n", state.objectSource[state.curAddr])
 	}
 }
 
 func (state *State) ParseOperandSizeOverridePrefix() {
+	// Prefix group 3
 	if state.objectSource[state.curAddr] == 0x66 {
 		state.prefix = PrefixP66
+		state.disassembledInstructionSize++
+		state.curAddr++
+		fmt.Printf("mnemonic nun: %x\n", state.objectSource[state.curAddr])
+	}
+}
+
+func (state *State) ParseAddressSizeOverridePrefix() {
+	// Prefix group 4
+	if state.objectSource[state.curAddr] == 0x67 {
+		// TODO: set prefix ?
+		// state.opEnc = OpEncRM
 		state.disassembledInstructionSize++
 		state.curAddr++
 	}
@@ -318,6 +333,8 @@ func (state *State) step(startAddr uint64) {
 	// parse prefix
 	state.ParsePrefixInstrucsions()
 	state.ParseSegmentOverrridePrefix()
+	state.ParseOperandSizeOverridePrefix()
+	state.ParseAddressSizeOverridePrefix()
 	// parsePrefix
 
 	state.ParseREX()
