@@ -1,6 +1,9 @@
 package main
 
-import "strconv"
+import (
+	"fmt"
+	"strconv"
+)
 
 type ModRM struct {
 	rex     REX
@@ -68,6 +71,8 @@ func (modrm *ModRM) GetReg(operand Operand) string {
 }
 
 func (modrm *ModRM) GetAddrMode(operand Operand, disp8 string, disp32 string) string {
+	fmt.Printf("modrm.modByte: %x\n", modrm.modByte)
+	fmt.Printf("operand: %x\n", operand)
 	var addrBaseReg string
 	var addNum byte = 0
 	if modrm.rex.rexB {
@@ -77,13 +82,18 @@ func (modrm *ModRM) GetAddrMode(operand Operand, disp8 string, disp32 string) st
 		if operand == OpXm128 {
 			addrBaseReg = "xmm" + strconv.Itoa(int(modrm.rmByte+addNum))
 		} else {
-			addrBaseReg = "xmm" + strconv.Itoa(int(modrm.rmByte+addNum))
+			addNum := 0
+			if modrm.rex.rexB {
+				addNum = 8
+			}
+			addrBaseReg = Operand2Register(operand)[modrm.rmByte+byte(addNum)]
 		}
 	} else {
 		if operand == OpXm128 {
 			addrBaseReg = "xmm" + strconv.Itoa(int(modrm.rmByte+addNum))
 		} else {
-			addrBaseReg = REGISTERS64[modrm.rmByte+addNum]
+			// addrBaseReg = REGISTERS64[modrm.rmByte+addNum]
+			addrBaseReg = Operand2Register(operand)[modrm.rmByte+byte(addNum)]
 		}
 	}
 
