@@ -279,6 +279,7 @@ func (state *State) ParseOpecode() {
 	if okOperandLookUp {
 		state.opEnc = eleOperandLookUp.openc
 		state.remOps = eleOperandLookUp.vecString
+		fmt.Println(eleOperandLookUp.vecOperand)
 		state.operands = eleOperandLookUp.vecOperand
 	} else {
 		log.Fatal("Unknown combination of prefix, mnemonic and opcodeByte: (" + PrefixToString(state.prefix) + ", " + MnemonicToString(state.mnemonic) + ", )")
@@ -345,20 +346,29 @@ func (state *State) step(startAddr uint64) {
 	// parse operand
 	var imm []byte
 	for _, operand := range state.operands {
+		fmt.Printf("parse operand loop\n")
+		fmt.Printf("operand: %x\n", operand)
 		decodedTranslatedValue := ""
 
 		if IsAReg(operand) || operand == OpCl || operand == OpDx {
+			fmt.Println("hoge1")
 			decodedTranslatedValue = OperandToString(operand)
 		} else if operand == OpSti {
+			fmt.Println("hoge2")
 			decodedTranslatedValue = "st(" + state.remOps[0] + ")"
 		} else if IsRM(operand) || IsREG(operand) || IsM(operand) {
 			if HasModrm(state.opEnc) {
 				if IsRM(operand) || IsM(operand) {
+					fmt.Println("hoge3")
 					decodedTranslatedValue = state.modrm.GetAddrMode(operand, state.disp8, state.disp32)
+					fmt.Println(decodedTranslatedValue)
 				} else {
+					fmt.Println("hoge4")
 					decodedTranslatedValue = state.modrm.GetReg(operand)
+					fmt.Println(decodedTranslatedValue)
 				}
 			} else {
+				fmt.Println("bbb")
 				var regIdx int
 				if state.hasREX && state.rex.rexB {
 					regIdx, _ = strconv.Atoi(state.remOps[0])
@@ -368,20 +378,28 @@ func (state *State) step(startAddr uint64) {
 				}
 
 				if Is8Bit(operand) {
+					fmt.Println("hoge5")
 					decodedTranslatedValue = REGISTERS8[regIdx]
 				} else if Is16Bit(operand) {
+					fmt.Println("hoge6")
 					decodedTranslatedValue = REGISTERS16[regIdx]
 				} else if Is32Bit(operand) {
+					fmt.Println("hoge7")
 					decodedTranslatedValue = REGISTERS32[regIdx]
 				} else if operand == OpXm128 {
+					fmt.Println("hoge8")
 					decodedTranslatedValue = "xmm" + state.remOps[0]
 				}
 			}
 
 			if (IsRM(operand) || IsM(operand)) && HasModrm(state.opEnc) && state.modrm.hasSib {
+				fmt.Println("hoge9")
 				decodedTranslatedValue = state.sib.GetAddr(operand, state.disp8, state.disp32)
 			}
-			// if hasSegmentOverridePrefix
+			if state.hasSegmentOverridePrefix {
+				fmt.Println("hoge11")
+				decodedTranslatedValue = state.prefixSegmentOverrideStr + ":" + decodedTranslatedValue
+			}
 
 		} else if IsIMM(operand) {
 			immSize := 0
@@ -403,10 +421,14 @@ func (state *State) step(startAddr uint64) {
 			for i := 0; i < len(imm); i++ {
 				tmpStr += fmt.Sprintf("%x", imm[i])
 			}
+			fmt.Println("hoge10")
 			decodedTranslatedValue = tmpStr
 		}
 
 		state.disassembledOperands = append(state.disassembledOperands, decodedTranslatedValue)
 	}
 
+	// Append the mnemonic to the disassembled instruction
+	instruction := MnemonicToString(state.mnemonic)
+	state.disassembledInstruction = append(state.disassembledInstruction, instruction)
 }

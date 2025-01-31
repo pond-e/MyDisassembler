@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -40,12 +41,14 @@ func main() {
 	// get all sections entry points
 
 	// disassemble all sections
-	end := entry + 4
+	end := entry + 8
 	// get end address
 	for entry <= end {
 		state := NewState(memory.dump, entry)
 		state.step(entry)
-		fmt.Printf("%s %s\n", state.disassembledInstruction, state.disassembledOperands)
+		// Format the output to match Intel syntax
+		fmt.Printf("%s %s\n", state.disassembledInstruction[len(state.disassembledInstruction)-1],
+			strings.Join(state.disassembledOperands, ", "))
 		entry += state.disassembledInstructionSize
 	}
 }
