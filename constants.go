@@ -99,7 +99,8 @@ func IsAReg(operand Operand) bool {
 
 func IsRM(operand Operand) bool {
 	return operand == OpRm8 || operand == OpRm16 ||
-		operand == OpEax || operand == OpRax
+		operand == OpRm32 || operand == OpRm64 ||
+		operand == OpXm128
 }
 
 func IsM(operand Operand) bool {
