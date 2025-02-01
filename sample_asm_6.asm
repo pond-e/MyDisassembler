@@ -3,4 +3,4 @@
 	global _start
 
 _start:
-	jmp 0x11
+	jmp QWORD [rax]
