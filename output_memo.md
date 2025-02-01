@@ -15,3 +15,11 @@ mov eax, [ebx]
 2025/01/31 19:57:24 Unknown combination of prefix, mnemonic and opcodeByte: (none, add, )
 exit status 1
 ```
+
+```
+$ go run . sample_asm_3
+.text
+mov eax, [ebx]
+$ go run . sample_asm_3_win64.exe
+mov eax, [ebx]
+```
