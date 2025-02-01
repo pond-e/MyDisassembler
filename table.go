@@ -387,6 +387,28 @@ var OP_LOOKUP = map[PrefixOpcode]RegOperator{
 	{Prefix: PrefixP66, Opcode: 0xC7}:  {Reg: -1, Operator: MnMOV},
 	{Prefix: PrefixNONE, Opcode: 0xC7}: {Reg: -1, Operator: MnMOV},
 	{Prefix: PrefixREX, Opcode: 0xC7}:  {Reg: -1, Operator: MnMOV},
+
+	// FF
+	{Prefix: PrefixNONE, Opcode: 0xFF}: {Reg: 0, Operator: MnINC},
+	{Prefix: PrefixNONE, Opcode: 0xFF}: {Reg: 1, Operator: MnDEC},
+	{Prefix: PrefixNONE, Opcode: 0xFF}: {Reg: 2, Operator: MnCALL},
+	{Prefix: PrefixNONE, Opcode: 0xFF}: {Reg: 4, Operator: MnJMP},
+	{Prefix: PrefixNONE, Opcode: 0xFF}: {Reg: 5, Operator: MnJMP},
+	{Prefix: PrefixNONE, Opcode: 0xFF}: {Reg: 6, Operator: MnPUSH},
+
+	// JMP
+	{Prefix: PrefixNONE, Opcode: 0xE8}: {Reg: -1, Operator: MnJMP},
+	{Prefix: PrefixNONE, Opcode: 0xE9}: {Reg: -1, Operator: MnJMP},
+}
+
+var OP_LOOKUP_SAME_KEY = map[PrefixOpcode][]RegOperator{
+	{Prefix: PrefixNONE, Opcode: 0xFF}: {
+		{Reg: 0, Operator: MnINC},
+		{Reg: 1, Operator: MnDEC},
+		{Reg: 2, Operator: MnCALL},
+		{Reg: 4, Operator: MnJMP},
+		{Reg: 5, Operator: MnJMP},
+		{Reg: 6, Operator: MnPUSH}},
 }
 
 type PrefixMnemonicInt struct {
@@ -476,6 +498,11 @@ var OPERAND_LOOKUP = map[PrefixMnemonicInt]OpEncVecStrVecOprand{
 	{prefix: PrefixREXW, mnemonic: MnMOV, num: 0xC7}: {openc: OpEncMI, vecString: []string{"id"}, vecOperand: []Operand{OpRm64, OpImm32}},
 
 	// ..etc
+
+	// JMP
+	{prefix: PrefixNONE, mnemonic: MnJMP, num: 0xE8}: {openc: OpEncD, vecString: []string{"cb"}, vecOperand: []Operand{OpImm8}},
+	{prefix: PrefixNONE, mnemonic: MnJMP, num: 0xE9}: {openc: OpEncD, vecString: []string{"cb"}, vecOperand: []Operand{OpImm32}},
+	{prefix: PrefixNONE, mnemonic: MnJMP, num: 0xFF}: {openc: OpEncM, vecString: []string{"4"}, vecOperand: []Operand{OpRm64}},
 }
 
 var SEGMENT_OVERRIDE = map[byte]string{

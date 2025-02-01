@@ -220,18 +220,24 @@ func (state *State) ParseOpecode() {
 	// (prefix, opcode) -> (reg, mnemonic)
 	reg2mnem := make(map[int]Mnemonic)
 	if okOpLookUp {
-		reg2mnemTmp := OP_LOOKUP[PrefixOpcode{Prefix: state.prefix, Opcode: int(state.opcodeByte)}]
-		reg2mnem[reg2mnemTmp.Reg] = reg2mnemTmp.Operator
+		reg2mnemTmp := OP_LOOKUP_SAME_KEY[PrefixOpcode{Prefix: state.prefix, Opcode: int(state.opcodeByte)}]
+		for i := 0; i < len(reg2mnemTmp); i++ {
+			reg2mnem[reg2mnemTmp[i].Reg] = reg2mnemTmp[i].Operator
+		}
 	} else if state.prefix == PrefixREXW && okOpLookUpRex {
-		reg2mnemTmp := OP_LOOKUP[PrefixOpcode{Prefix: PrefixREX, Opcode: int(state.opcodeByte)}]
-		reg2mnem[reg2mnemTmp.Reg] = reg2mnemTmp.Operator
+		reg2mnemTmp := OP_LOOKUP_SAME_KEY[PrefixOpcode{Prefix: PrefixREX, Opcode: int(state.opcodeByte)}]
+		for i := 0; i < len(reg2mnemTmp); i++ {
+			reg2mnem[reg2mnemTmp[i].Reg] = reg2mnemTmp[i].Operator
+		}
 		state.prefix = PrefixREX
 	} else if state.prefix == PrefixREX && okOpLookUpNone {
-		reg2mnemTmp := OP_LOOKUP[PrefixOpcode{Prefix: PrefixNONE, Opcode: int(state.opcodeByte)}]
-		reg2mnem[reg2mnemTmp.Reg] = reg2mnemTmp.Operator
+		reg2mnemTmp := OP_LOOKUP_SAME_KEY[PrefixOpcode{Prefix: PrefixNONE, Opcode: int(state.opcodeByte)}]
+		for i := 0; i < len(reg2mnemTmp); i++ {
+			reg2mnem[reg2mnemTmp[i].Reg] = reg2mnemTmp[i].Operator
+		}
 		state.prefix = PrefixNONE
 	} else {
-		fmt.Printf("%x\n", state.opcodeByte)
+		fmt.Printf("state.opcodeByte: %x\n", state.opcodeByte)
 		log.Fatal("Unknown combination of the prefix and the opcodeByte: (" + PrefixToString(state.prefix) + ")")
 	}
 
@@ -249,6 +255,9 @@ func (state *State) ParseOpecode() {
 		} else if defaultMnem, ok := reg2mnem[-1]; ok {
 			state.mnemonic = defaultMnem
 		} else {
+			fmt.Printf("state prefix: %s\n", PrefixToString(state.prefix))
+			fmt.Printf("state.opcodeByte: 0x%x\n", state.opcodeByte)
+			fmt.Printf("reg: %d\n", reg)
 			log.Fatal("Unable to determine mnemonic for opcode")
 		}
 	} else if defaultMnem, ok := reg2mnem[-1]; ok {
@@ -282,6 +291,7 @@ func (state *State) ParseOpecode() {
 		// fmt.Println(eleOperandLookUp.vecOperand)
 		state.operands = eleOperandLookUp.vecOperand
 	} else {
+		fmt.Println("okOperandLookUp is false")
 		log.Fatal("Unknown combination of prefix, mnemonic and opcodeByte: (" + PrefixToString(state.prefix) + ", " + MnemonicToString(state.mnemonic) + ", )")
 	}
 }
