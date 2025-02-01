@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strconv"
 )
 
@@ -71,8 +70,8 @@ func (modrm *ModRM) GetReg(operand Operand) string {
 }
 
 func (modrm *ModRM) GetAddrMode(operand Operand, disp8 string, disp32 string) string {
-	fmt.Printf("modrm.modByte: %x\n", modrm.modByte)
-	fmt.Printf("operand: %x\n", operand)
+	// fmt.Printf("modrm.modByte: %x\n", modrm.modByte)
+	// fmt.Printf("operand: %x\n", operand)
 	var addrBaseReg string
 	var addNum byte = 0
 	if modrm.rex.rexB {
