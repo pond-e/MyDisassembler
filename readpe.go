@@ -83,6 +83,19 @@ type IMAGE_NT_HEADERS64 struct {
 	OptionalHeader IMAGE_OPTIONAL_HEADER64
 }
 
+type IMAGE_SECTION_HEADER struct {
+	Name                 [8]BYTE
+	VirtualSize          DWORD
+	VirtualAddress       DWORD
+	SizeOfRawData        DWORD
+	PointerToRawData     DWORD
+	PointerToRelocations DWORD
+	PointerToLinenumbers DWORD
+	NumberOfRelocations  WORD
+	NumberOfLinenumbers  WORD
+	Characteristics      DWORD
+}
+
 func ReadImageDosHeader(file *os.File) (*IMAGE_DOS_HEADER, error) {
 	dosHeader := new(IMAGE_DOS_HEADER)
 	err := binary.Read(file, binary.LittleEndian, dosHeader)
@@ -109,7 +122,29 @@ func ReadNTHeader(file *os.File, offset int64) (*IMAGE_NT_HEADERS64, error) {
 	return ntHeader, nil
 }
 
-func ReadPe(file *os.File) {
+func ReadSectionHeader(file *os.File, ntHeader *IMAGE_NT_HEADERS64) ([]IMAGE_SECTION_HEADER, error) {
+	// Calculate the offset to the first section header
+	sectionHeaderOffset := int64(binary.Size(*ntHeader)) + int64(ntHeader.FileHeader.SizeOfOptionalHeader)
+
+	// Move the file pointer to the section header offset
+	_, err := file.Seek(sectionHeaderOffset, io.SeekStart)
+	if err != nil {
+		return nil, fmt.Errorf("error seeking to section header: %v", err)
+	}
+
+	// Read the section headers
+	sectionHeaders := make([]IMAGE_SECTION_HEADER, ntHeader.FileHeader.NumberOfSections)
+	for i := 0; i < int(ntHeader.FileHeader.NumberOfSections); i++ {
+		err = binary.Read(file, binary.LittleEndian, &sectionHeaders[i])
+		if err != nil {
+			return nil, fmt.Errorf("error reading section header: %v", err)
+		}
+	}
+
+	return sectionHeaders, nil
+}
+
+func ReadPe(file *os.File) DWORD {
 	dosHeader, err := ReadImageDosHeader(file)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading DOS header: %v\n", err)
@@ -121,67 +156,12 @@ func ReadPe(file *os.File) {
 		os.Exit(1)
 	}
 
-	fmt.Printf("NT Header:\n")
-	fmt.Printf("  Signature:                    0x%X\n", ntHeader.Signature)
-	fmt.Printf("  File Header:\n")
-	fmt.Printf("    Machine:                   0x%X\n", ntHeader.FileHeader.Machine)
-	fmt.Printf("    Number of Sections:        %d\n", ntHeader.FileHeader.NumberOfSections)
-	fmt.Printf("    Time Date Stamp:           0x%X\n", ntHeader.FileHeader.TimeDateStamp)
-	fmt.Printf("    Pointer to Symbol Table:   0x%X\n", ntHeader.FileHeader.PointerToSymbolTable)
-	fmt.Printf("    Number of Symbols:         %d\n", ntHeader.FileHeader.NumberOfSymbols)
-	fmt.Printf("    Size of Optional Header:   %d\n", ntHeader.FileHeader.SizeOfOptionalHeader)
-	fmt.Printf("    Characteristics:           0x%X\n", ntHeader.FileHeader.Characteristics)
-	fmt.Printf("  Optional Header:\n")
-	fmt.Printf("    Magic:                     0x%X\n", ntHeader.OptionalHeader.Magic)
-	fmt.Printf("    Major Linker Version:      %d\n", ntHeader.OptionalHeader.MajorLinkerVersion)
-	fmt.Printf("    Minor Linker Version:      %d\n", ntHeader.OptionalHeader.MinorLinkerVersion)
-	fmt.Printf("    Size of Code:              %d\n", ntHeader.OptionalHeader.SizeOfCode)
-	fmt.Printf("    Size of Initialized Data:  %d\n", ntHeader.OptionalHeader.SizeOfInitializedData)
-	fmt.Printf("    Size of Uninitialized Data:%d\n", ntHeader.OptionalHeader.SizeOfUninitializedData)
-	fmt.Printf("    Address of Entry Point:    0x%X\n", ntHeader.OptionalHeader.AddressOfEntryPoint)
-	fmt.Printf("    Base of Code:              0x%X\n", ntHeader.OptionalHeader.BaseOfCode)
-	fmt.Printf("    Image Base:                0x%X\n", ntHeader.OptionalHeader.ImageBase)
-	fmt.Printf("    Section Alignment:         %d\n", ntHeader.OptionalHeader.SectionAlignment)
-	fmt.Printf("    File Alignment:            %d\n", ntHeader.OptionalHeader.FileAlignment)
-	fmt.Printf("    Major Operating System Version: %d\n", ntHeader.OptionalHeader.MajorOperatingSystemVersion)
-	fmt.Printf("    Minor Operating System Version: %d\n", ntHeader.OptionalHeader.MinorOperatingSystemVersion)
-	fmt.Printf("    Major Image Version:       %d\n", ntHeader.OptionalHeader.MajorImageVersion)
-	fmt.Printf("    Minor Image Version:       %d\n", ntHeader.OptionalHeader.MinorImageVersion)
-	fmt.Printf("    Major Subsystem Version:   %d\n", ntHeader.OptionalHeader.MajorSubsystemVersion)
-	fmt.Printf("    Minor Subsystem Version:   %d\n", ntHeader.OptionalHeader.MinorSubsystemVersion)
-	fmt.Printf("    Win32 Version Value:       0x%X\n", ntHeader.OptionalHeader.Win32VersionValue)
-	fmt.Printf("    Size of Image:             %d\n", ntHeader.OptionalHeader.SizeOfImage)
-	fmt.Printf("    Size of Headers:           %d\n", ntHeader.OptionalHeader.SizeOfHeaders)
-	fmt.Printf("    CheckSum:                  0x%X\n", ntHeader.OptionalHeader.CheckSum)
-	fmt.Printf("    Subsystem:                 0x%X\n", ntHeader.OptionalHeader.Subsystem)
-	fmt.Printf("    DLL Characteristics:       0x%X\n", ntHeader.OptionalHeader.DllCharacteristics)
-	fmt.Printf("    Size of Stack Reserve:     0x%X\n", ntHeader.OptionalHeader.SizeOfStackReserve)
-	fmt.Printf("    Size of Stack Commit:      0x%X\n", ntHeader.OptionalHeader.SizeOfStackCommit)
-	fmt.Printf("    Size of Heap Reserve:      0x%X\n", ntHeader.OptionalHeader.SizeOfHeapReserve)
-	fmt.Printf("    Size of Heap Commit:       0x%X\n", ntHeader.OptionalHeader.SizeOfHeapCommit)
-	fmt.Printf("    Loader Flags:              0x%X\n", ntHeader.OptionalHeader.LoaderFlags)
-	fmt.Printf("    Number of RVA and Sizes:   %d\n", ntHeader.OptionalHeader.NumberOfRvaAndSizes)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading Dos header: %v\n", err)
-		os.Exit(1)
-	}
+	// Read section headers
+	// sectionHeaders, err := ReadSectionHeader(file, ntHeader)
+	// if err != nil {
+	// 	fmt.Fprintf(os.Stderr, "Error reading section headers: %v\n", err)
+	// 	os.Exit(1)
+	// }
 
-	fmt.Printf("DOS Header:\n")
-	fmt.Printf("  Magic number:                 0x%X\n", dosHeader.E_magic)
-	fmt.Printf("  Bytes on last page of file:   %d\n", dosHeader.E_cblp)
-	fmt.Printf("  Pages in file:                %d\n", dosHeader.E_cp)
-	fmt.Printf("  Relocations:                  %d\n", dosHeader.E_crlc)
-	fmt.Printf("  Size of header in paragraphs: %d\n", dosHeader.E_cparhdr)
-	fmt.Printf("  Minimum extra paragraphs:     %d\n", dosHeader.E_minalloc)
-	fmt.Printf("  Maximum extra paragraphs:     %d\n", dosHeader.E_maxalloc)
-	fmt.Printf("  Initial (relative) SS value:  0x%X\n", dosHeader.E_ss)
-	fmt.Printf("  Initial SP value:             0x%X\n", dosHeader.E_sp)
-	fmt.Printf("  Checksum:                     0x%X\n", dosHeader.E_csum)
-	fmt.Printf("  Initial IP value:             0x%X\n", dosHeader.E_ip)
-	fmt.Printf("  Initial (relative) CS value:  0x%X\n", dosHeader.E_cs)
-	fmt.Printf("  File address of relocation table: 0x%X\n", dosHeader.E_lfarlc)
-	fmt.Printf("  Overlay number:               %d\n", dosHeader.E_ovno)
-	fmt.Printf("  OEM identifier:               %d\n", dosHeader.E_oemid)
-	fmt.Printf("  OEM information:              %d\n", dosHeader.E_oeminfo)
-	fmt.Printf("  File address of new exe header: 0x%X\n", dosHeader.E_lfanew)
+	return ntHeader.OptionalHeader.FileAlignment
 }
