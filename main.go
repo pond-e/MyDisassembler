@@ -9,30 +9,8 @@ import (
 
 func main() {
 	// Check if file path and entry point are provided
-	if len(os.Args) < 3 {
-		log.Fatal("Usage: go run main.go <file_path> <entry>")
-	}
-
-	// Read the file path from command line argument
-	data, err := os.ReadFile(os.Args[1])
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Parse entry point
-	var entry uint64
-	_, err = fmt.Sscanf(os.Args[2], "%x", &entry)
-	if err != nil {
-		log.Fatal("Entry point must be a hexadecimal number")
-	}
-
-	if entry >= 0x400000 {
-		entry -= 0x400000
-	}
-
-	// Validate entry point
-	if entry >= uint64(len(data)) {
-		log.Fatal("Entry point exceeds file size")
+	if len(os.Args) < 2 {
+		log.Fatal("Usage: go run main.go <file_path>")
 	}
 
 	memory := NewMemory()
@@ -51,9 +29,7 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println(sectionNames[1])
-	entry = offsets[1]
-	fmt.Printf("entry: %x\n", entry)
-	fmt.Printf("sizes[1]: %x\n", sizes[1])
+	entry := offsets[1]
 	// Find the section containing the entry point
 	// var sectionSize uint64
 	// for i, offset := range offsets {
@@ -74,7 +50,6 @@ func main() {
 		fmt.Printf("%s %s\n", state.disassembledInstruction[len(state.disassembledInstruction)-1],
 			strings.Join(state.disassembledOperands, ", "))
 		entry += state.disassembledInstructionSize
-		fmt.Printf("state.disassembledInstructionSize: %x\n", state.disassembledInstructionSize)
 	}
 
 	/*
