@@ -24,12 +24,39 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error opening file: %v\n", err)
 		os.Exit(1)
 	}
-	sectionNames, offsets, sizes, err := ReadElf(file)
-	if err != nil {
-		log.Fatal(err)
+
+	// INSERT_YOUR_CODE
+	// Determine if the file is a PE or ELF file
+	// fileHeader := make([]byte, 4)
+	// _, err = file.Read(fileHeader)
+	// if err != nil {
+	// 	fmt.Fprintf(os.Stderr, "Error reading file header: %v\n", err)
+	// 	os.Exit(1)
+	// }
+
+	var entry uint64
+	var end uint64
+
+	var sectionNames []string
+	var offsets, sizes []uint64
+
+	if memory.dump[0] == 0x4d {
+		peOffset := ReadPe(file)
+		entry = uint64(peOffset)
+		end = entry + 3
+		// You can add additional logic here if needed for PE files
+	} else if memory.dump[0] == 0x7f {
+		sectionNames, offsets, sizes, err = ReadElf(file)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(sectionNames[1])
+		entry = offsets[1]
+		end = entry + sizes[1]
+	} else {
+		fmt.Fprintf(os.Stderr, "Unknown file format\n")
+		os.Exit(1)
 	}
-	fmt.Println(sectionNames[1])
-	entry := offsets[1]
 	// Find the section containing the entry point
 	// var sectionSize uint64
 	// for i, offset := range offsets {
@@ -39,10 +66,6 @@ func main() {
 	// 	}
 	// }
 
-	// Set end based on the section size
-	end := entry + sizes[1]
-
-	// get end address
 	for entry < end {
 		state := NewState(memory.dump, entry)
 		state.step(entry)
