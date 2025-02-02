@@ -3,4 +3,5 @@
 	global _start
 
 _start:
-	jmp 0x10
+	add eax, 0x1
+    mov ebx, eax
