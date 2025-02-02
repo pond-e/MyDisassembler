@@ -41,9 +41,9 @@ func main() {
 	var offsets, sizes []uint64
 
 	if memory.dump[0] == 0x4d {
-		peOffset := ReadPe(file)
+		peOffset, size := ReadPe(file)
 		entry = uint64(peOffset)
-		end = entry + 3
+		end = entry + uint64(size)
 		// You can add additional logic here if needed for PE files
 	} else if memory.dump[0] == 0x7f {
 		sectionNames, offsets, sizes, err = ReadElf(file)

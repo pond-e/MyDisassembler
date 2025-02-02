@@ -122,9 +122,10 @@ func ReadNTHeader(file *os.File, offset int64) (*IMAGE_NT_HEADERS64, error) {
 	return ntHeader, nil
 }
 
-func ReadSectionHeader(file *os.File, ntHeader *IMAGE_NT_HEADERS64) ([]IMAGE_SECTION_HEADER, error) {
+func ReadSectionHeader(file *os.File, ntHeader *IMAGE_NT_HEADERS64, dosHeader *IMAGE_DOS_HEADER) ([]IMAGE_SECTION_HEADER, error) {
 	// Calculate the offset to the first section header
-	sectionHeaderOffset := int64(binary.Size(*ntHeader)) + int64(ntHeader.FileHeader.SizeOfOptionalHeader)
+	sectionHeaderOffset := int64(ntHeader.FileHeader.SizeOfOptionalHeader) + int64(dosHeader.E_lfanew) + int64(binary.Size(IMAGE_FILE_HEADER{})) + int64(binary.Size(DWORD(0)))
+	fmt.Printf("sectionHeaderOffset: 0x%x\n", sectionHeaderOffset)
 
 	// Move the file pointer to the section header offset
 	_, err := file.Seek(sectionHeaderOffset, io.SeekStart)
@@ -144,7 +145,7 @@ func ReadSectionHeader(file *os.File, ntHeader *IMAGE_NT_HEADERS64) ([]IMAGE_SEC
 	return sectionHeaders, nil
 }
 
-func ReadPe(file *os.File) DWORD {
+func ReadPe(file *os.File) (DWORD, DWORD) {
 	dosHeader, err := ReadImageDosHeader(file)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading DOS header: %v\n", err)
@@ -163,5 +164,16 @@ func ReadPe(file *os.File) DWORD {
 	// 	os.Exit(1)
 	// }
 
-	return ntHeader.OptionalHeader.FileAlignment
+	sectionHeaders, err := ReadSectionHeader(file, ntHeader, dosHeader)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error reading section headers: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Display the SizeOfRawData and PointerToRawData for each section header
+	for i, sectionHeader := range sectionHeaders {
+		fmt.Printf("Section %d: VirtualSize: 0x%x, PointerToRawData: 0x%x\n", i+1, sectionHeader.VirtualSize, sectionHeader.PointerToRawData)
+	}
+
+	return sectionHeaders[0].PointerToRawData, sectionHeaders[0].VirtualSize
 }
