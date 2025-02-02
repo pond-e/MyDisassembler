@@ -224,17 +224,25 @@ func (state *State) ParseOpecode() {
 		for i := 0; i < len(reg2mnemTmp); i++ {
 			reg2mnem[reg2mnemTmp[i].Reg] = reg2mnemTmp[i].Operator
 		}
+		reg2mnemTmp2 := OP_LOOKUP[PrefixOpcode{Prefix: state.prefix, Opcode: int(state.opcodeByte)}]
+		reg2mnem[reg2mnemTmp2.Reg] = reg2mnemTmp2.Operator
 	} else if state.prefix == PrefixREXW && okOpLookUpRex {
 		reg2mnemTmp := OP_LOOKUP_SAME_KEY[PrefixOpcode{Prefix: PrefixREX, Opcode: int(state.opcodeByte)}]
 		for i := 0; i < len(reg2mnemTmp); i++ {
 			reg2mnem[reg2mnemTmp[i].Reg] = reg2mnemTmp[i].Operator
 		}
+		reg2mnemTmp2 := OP_LOOKUP[PrefixOpcode{Prefix: PrefixREX, Opcode: int(state.opcodeByte)}]
+		reg2mnem[reg2mnemTmp2.Reg] = reg2mnemTmp2.Operator
+
 		state.prefix = PrefixREX
 	} else if state.prefix == PrefixREX && okOpLookUpNone {
 		reg2mnemTmp := OP_LOOKUP_SAME_KEY[PrefixOpcode{Prefix: PrefixNONE, Opcode: int(state.opcodeByte)}]
 		for i := 0; i < len(reg2mnemTmp); i++ {
 			reg2mnem[reg2mnemTmp[i].Reg] = reg2mnemTmp[i].Operator
 		}
+		reg2mnemTmp2 := OP_LOOKUP[PrefixOpcode{Prefix: PrefixNONE, Opcode: int(state.opcodeByte)}]
+		reg2mnem[reg2mnemTmp2.Reg] = reg2mnemTmp2.Operator
+
 		state.prefix = PrefixNONE
 	} else {
 		fmt.Printf("state.opcodeByte: %x\n", state.opcodeByte)
