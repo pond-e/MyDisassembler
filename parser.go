@@ -75,7 +75,7 @@ type State struct {
 	prefixOffset                uint64
 
 	instructionPrefixByte byte
-	opcodeByte            byte
+	opcodeByte            int16
 	modrmByte             byte
 	sibByte               byte
 
@@ -201,47 +201,57 @@ func (state *State) ParseSIB() {
 }
 
 func (state *State) ParseOpecode() {
-	state.opcodeByte = state.objectSource[state.curAddr]
+	state.opcodeByte = int16(state.objectSource[state.curAddr])
 	state.disassembledInstructionSize++
 	state.curAddr++
 
-	pottentialOpCodeByte := (state.opcodeByte << 8) + state.objectSource[state.curAddr]
+	pottentialOpCodeByte := (state.opcodeByte << 8) + int16(state.objectSource[state.curAddr])
 
-	_, okOpLookUp := OP_LOOKUP[PrefixOpcode{Prefix: state.prefix, Opcode: int(state.opcodeByte)}]
-	// _, okOpLookUpRexw := OP_LOOKUP[PrefixOpcode{Prefix: PrefixREXW, Opcode: int(state.opcodeByte)}]
-	_, okOpLookUpRex := OP_LOOKUP[PrefixOpcode{Prefix: PrefixREX, Opcode: int(state.opcodeByte)}]
-	_, okOpLookUpNone := OP_LOOKUP[PrefixOpcode{Prefix: PrefixNONE, Opcode: int(state.opcodeByte)}]
-	if slices.Contains(TWO_BYTES_OPCODE_PREFIX[:], int(state.opcodeByte)) || state.prefix == PrefixREXW && okOpLookUpRex || state.prefix == PrefixREX && okOpLookUpNone {
+	_, okOpLookUpRexTwoByte := OP_LOOKUP[PrefixOpcode{Prefix: PrefixREX, Opcode: int(pottentialOpCodeByte)}]
+	_, okOpLoopUpNoneTwoByte := OP_LOOKUP[PrefixOpcode{Prefix: PrefixNONE, Opcode: int(pottentialOpCodeByte)}]
+	if slices.Contains(TWO_BYTES_OPCODE_PREFIX[:], int(state.opcodeByte)) || state.prefix == PrefixREXW && okOpLookUpRexTwoByte || state.prefix == PrefixREX && okOpLoopUpNoneTwoByte {
+		if state.prefix == PrefixREX && okOpLoopUpNoneTwoByte {
+			fmt.Println("gi")
+		}
+		fmt.Println("hoge")
 		state.opcodeByte = pottentialOpCodeByte
 		state.disassembledInstructionSize++
 		state.curAddr++
 	}
 
+	_, okOpLookUp := OP_LOOKUP[PrefixOpcode{Prefix: state.prefix, Opcode: int(state.opcodeByte)}]
+	// _, okOpLookUpRexw := OP_LOOKUP[PrefixOpcode{Prefix: PrefixREXW, Opcode: int(state.opcodeByte)}]
+	_, okOpLookUpRex := OP_LOOKUP[PrefixOpcode{Prefix: PrefixREX, Opcode: int(state.opcodeByte)}]
+	_, okOpLookUpNone := OP_LOOKUP[PrefixOpcode{Prefix: PrefixNONE, Opcode: int(state.opcodeByte)}]
 	// (prefix, opcode) -> (reg, mnemonic)
 	reg2mnem := make(map[int]Mnemonic)
+	// fmt.Printf("state.opcodeByte: %x\n", state.opcodeByte)
 	if okOpLookUp {
+		reg2mnemTmp2 := OP_LOOKUP[PrefixOpcode{Prefix: state.prefix, Opcode: int(state.opcodeByte)}]
+		reg2mnem[reg2mnemTmp2.Reg] = reg2mnemTmp2.Operator
+
 		reg2mnemTmp := OP_LOOKUP_SAME_KEY[PrefixOpcode{Prefix: state.prefix, Opcode: int(state.opcodeByte)}]
 		for i := 0; i < len(reg2mnemTmp); i++ {
 			reg2mnem[reg2mnemTmp[i].Reg] = reg2mnemTmp[i].Operator
 		}
-		reg2mnemTmp2 := OP_LOOKUP[PrefixOpcode{Prefix: state.prefix, Opcode: int(state.opcodeByte)}]
-		reg2mnem[reg2mnemTmp2.Reg] = reg2mnemTmp2.Operator
 	} else if state.prefix == PrefixREXW && okOpLookUpRex {
+		reg2mnemTmp2 := OP_LOOKUP[PrefixOpcode{Prefix: PrefixREX, Opcode: int(state.opcodeByte)}]
+		reg2mnem[reg2mnemTmp2.Reg] = reg2mnemTmp2.Operator
+
 		reg2mnemTmp := OP_LOOKUP_SAME_KEY[PrefixOpcode{Prefix: PrefixREX, Opcode: int(state.opcodeByte)}]
 		for i := 0; i < len(reg2mnemTmp); i++ {
 			reg2mnem[reg2mnemTmp[i].Reg] = reg2mnemTmp[i].Operator
 		}
-		reg2mnemTmp2 := OP_LOOKUP[PrefixOpcode{Prefix: PrefixREX, Opcode: int(state.opcodeByte)}]
-		reg2mnem[reg2mnemTmp2.Reg] = reg2mnemTmp2.Operator
 
 		state.prefix = PrefixREX
 	} else if state.prefix == PrefixREX && okOpLookUpNone {
+		reg2mnemTmp2 := OP_LOOKUP[PrefixOpcode{Prefix: PrefixNONE, Opcode: int(state.opcodeByte)}]
+		reg2mnem[reg2mnemTmp2.Reg] = reg2mnemTmp2.Operator
+
 		reg2mnemTmp := OP_LOOKUP_SAME_KEY[PrefixOpcode{Prefix: PrefixNONE, Opcode: int(state.opcodeByte)}]
 		for i := 0; i < len(reg2mnemTmp); i++ {
 			reg2mnem[reg2mnemTmp[i].Reg] = reg2mnemTmp[i].Operator
 		}
-		reg2mnemTmp2 := OP_LOOKUP[PrefixOpcode{Prefix: PrefixNONE, Opcode: int(state.opcodeByte)}]
-		reg2mnem[reg2mnemTmp2.Reg] = reg2mnemTmp2.Operator
 
 		state.prefix = PrefixNONE
 	} else {
@@ -359,6 +369,7 @@ func (state *State) step(startAddr uint64) {
 	state.ParseREX()
 	state.ParseOpecode()
 	state.ParseModRM()
+	state.ParseSIB()
 	state.ParseAddressOffset()
 
 	// parse operand

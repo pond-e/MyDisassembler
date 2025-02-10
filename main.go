@@ -16,8 +16,6 @@ func main() {
 	memory := NewMemory()
 	memory.ReadDump(os.Args[1])
 
-	// get all sections entry points
-
 	// disassemble all sections
 	file, err := os.Open(os.Args[1])
 	if err != nil {
@@ -65,7 +63,7 @@ func main() {
 	// 		break
 	// 	}
 	// }
-
+	// fmt.Printf("entry: %x\n", entry)
 	for entry < end {
 		state := NewState(memory.dump, entry)
 		state.step(entry)

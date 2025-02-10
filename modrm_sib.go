@@ -58,7 +58,7 @@ func NewModRM(modrmByte byte, rex REX) *ModRM {
 
 func (modrm *ModRM) GetReg(operand Operand) string {
 	var addNum byte = 0
-	if modrm.rex.rexB {
+	if modrm.rex.rexR {
 		addNum = 8
 	}
 
