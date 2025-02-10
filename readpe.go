@@ -125,7 +125,7 @@ func ReadNTHeader(file *os.File, offset int64) (*IMAGE_NT_HEADERS64, error) {
 func ReadSectionHeader(file *os.File, ntHeader *IMAGE_NT_HEADERS64, dosHeader *IMAGE_DOS_HEADER) ([]IMAGE_SECTION_HEADER, error) {
 	// Calculate the offset to the first section header
 	sectionHeaderOffset := int64(ntHeader.FileHeader.SizeOfOptionalHeader) + int64(dosHeader.E_lfanew) + int64(binary.Size(IMAGE_FILE_HEADER{})) + int64(binary.Size(DWORD(0)))
-	fmt.Printf("sectionHeaderOffset: 0x%x\n", sectionHeaderOffset)
+	// fmt.Printf("sectionHeaderOffset: 0x%x\n", sectionHeaderOffset)
 
 	// Move the file pointer to the section header offset
 	_, err := file.Seek(sectionHeaderOffset, io.SeekStart)
@@ -171,9 +171,9 @@ func ReadPe(file *os.File) (DWORD, DWORD) {
 	}
 
 	// Display the SizeOfRawData and PointerToRawData for each section header
-	for i, sectionHeader := range sectionHeaders {
-		fmt.Printf("Section %d: VirtualSize: 0x%x, PointerToRawData: 0x%x\n", i+1, sectionHeader.VirtualSize, sectionHeader.PointerToRawData)
-	}
+	// for i, sectionHeader := range sectionHeaders {
+	// 	fmt.Printf("Section %d: VirtualSize: 0x%x, PointerToRawData: 0x%x\n", i+1, sectionHeader.VirtualSize, sectionHeader.PointerToRawData)
+	// }
 
 	return sectionHeaders[0].PointerToRawData, sectionHeaders[0].VirtualSize
 }
