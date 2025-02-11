@@ -26,15 +26,12 @@ func main() {
 	var entry uint64
 	var end uint64
 
-	var sectionNames []string
-	var offsets, sizes []uint64
-
 	if memory.dump[0] == 0x4d {
 		peOffset, size := ReadPe(file)
 		entry = uint64(peOffset)
 		end = entry + uint64(size)
 	} else if memory.dump[0] == 0x7f {
-		sectionNames, offsets, sizes, err = ReadElf(file)
+		sectionNames, offsets, sizes, err := ReadElf(file)
 		if err != nil {
 			log.Fatal(err)
 		}
